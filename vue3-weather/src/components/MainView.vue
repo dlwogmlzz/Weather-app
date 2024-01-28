@@ -22,9 +22,10 @@
 					<img src="../assets/10d.png" alt="MainLogo" />
 				</div>
 				<div class="weatherData">
-					<div>
-						<p></p>
-						<p></p>
+					<!-- 데이터 보간법 : 데이터를 원하는 장소에 활용한다. -->
+					<div v-for="Temporary in TemporaryData" :key="Temporary.title" class="detailData">
+						<p>{{ Temporary.title }}</p>
+						<p>{{ Temporary.value }}</p>
 					</div>
 				</div>
 			</div>
@@ -38,7 +39,7 @@
 			<div class="timelyWeatherBox">
 				<div class="timelyWeather">
 					<div class="icon">
-						<img src="../assets/01n.png" alt="" />
+						<img src="../assets/13d.png" alt="" />
 					</div>
 					<div class="data">
 						<p class="time">2pm</p>
@@ -62,7 +63,28 @@
 </template>
 
 <script>
-export default {}
+export default {
+	data() {
+
+		return {
+		// 임시 데이터
+		TemporaryData: [
+			{
+				title: "습도",
+				value: "88%",
+			},
+			{
+				title: "풍속",
+				value: "10m/s",
+			},
+			{
+				title: "풍향",
+				value: "WS",
+			}
+		]
+		}
+	}
+}
 </script>
 
 <style lang="scss" scoped>
@@ -177,7 +199,7 @@ export default {}
 					@include c-center;
 					width: 33.33%;
 					height: 100%;
-
+					// 레이아웃이 3개 이기 때문에 동일한 레이아웃을 반복시킴을 알수 있다.
 					&:nth-child(1) {
 						margin-left: 10px;
 					}
@@ -205,6 +227,97 @@ export default {}
 							font-size: 1rem;
 							font-weight: 300;
 							font-family: 'Poppins', sans-serif;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	#todayWeather {
+		width: 100%;
+		height: 17.5%;
+
+		.textBox {
+			@include center-sb;
+			width: calc(100% - 70px);
+			height: 35%;
+			padding: 0 35px;
+			font-family: 'Noto Sans KR', sans-serif;
+
+			p {
+				font-weight: 400;
+				font-size: 0.8rem;
+				color: white;
+				text-align: center;
+
+				&:last-child {
+					font-weight: 400;
+					font-size: 0.8rem;
+					color: #0085ff;
+					cursor: pointer;
+					margin-bottom: 2px;
+				}
+			}
+		}
+
+		.timelyWeatherBox {
+			display: flex;
+			align-items: center;
+			width: calc(100% - 70px);
+			height: 65%;
+			padding: 0 30px;
+
+			.timelyWeather {
+				display: flex;
+				width: 126px;
+				height: 70px;
+				background-color: #0988ff;
+				border-radius: 20px;
+
+				.icon {
+					@include center;
+					width: 45%;
+					height: 100%;
+
+					img {
+						width: 100%;
+					}
+				}
+				.data {
+					@include c-center-se;
+					width: 55%;
+					height: 100%;
+
+					p {
+						color: whitesmoke;
+						font-family: 'Poppins', sans-serif;
+						text-align: center;
+
+						&.time {
+							font-size: 0.8rem;
+							font-weight: 200;
+							margin-top: 7.5px; 
+						}
+
+						&.currentDegree {
+							font-size: 1.2rem;
+							margin-top: 7.5px;
+						}
+					}
+
+					div {
+						@include center;
+						width: 100%;
+						height: 33.33%;
+
+						img {
+							height: 55%;
+						}
+
+						.fall {
+							font-size: 0.9rem;
+							margin-top: 1.5px;
 						}
 					}
 				}
