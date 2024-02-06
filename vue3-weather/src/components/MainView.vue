@@ -2,8 +2,8 @@
 	<div class="leftContainer">
 		<div id="cityNameBox">
 			<div class="cityName">
-				<p>San Fransisco</p>
-				<p>Jan 28, 2024</p>
+				<p>{{ cityName }}</p>
+				<p>{{ currentTime }}</p>
 			</div>
 		</div>
 		<div id="contentsBox">
@@ -16,16 +16,16 @@
 			<div class="weatherBox">
 				<div class="weatherDegree">
 					<!-- &deg;는 html특수기호 입력방식으로, html기호입력을 검색해서 다양한 기호방식을 적용할수있다. -->
-					<p>10&deg;</p>
+					<p>{{ Math.round(currentTemp) }}&deg;</p>
 				</div>
 				<div class="weatherIcon">
 					<img src="../assets/10d.png" alt="MainLogo" />
 				</div>
 				<div class="weatherData">
 					<!-- 데이터 보간법 : 데이터를 원하는 장소에 활용한다. -->
-					<div v-for="Temporary in TemporaryData" :key="Temporary.title" class="detailData">
-						<p>{{ Temporary.title }}</p>
-						<p>{{ Temporary.value }}</p>
+					<div v-for="temporary in temporaryData" :key="temporary.title" class="detailData">
+						<p>{{ temporary.title }}</p>
+						<p>{{ temporary.value }}</p>
 					</div>
 				</div>
 			</div>
@@ -37,16 +37,16 @@
 			</div>
 			<!-- 시간대별 데이터가 들어갈수 있는 태그 -->
 			<div class="timelyWeatherBox">
-				<div class="timelyWeather">
+				<div class="timelyWeather" v-for="(temp, index) in arrayTemps" :key="index">
 					<div class="icon">
 						<img src="../assets/13d.png" alt="" />
 					</div>
 					<div class="data">
-						<p class="time">2pm</p>
-						<p class="currentDegree">32&deg;</p>
+						<p class="time">{{ temp.dt }}시</p>
+						<p class="currentDegree">{{ Math.round(temp.temp) }}&deg;</p>
 						<div>
 							<img src="../assets/drop.png" alt="" />
-							<p class="fall">15%</p>
+							<p class="fall">{{ temp.humidity }}%</p>
 						</div>
 					</div>
 				</div>
@@ -63,28 +63,74 @@
 </template>
 
 <script>
+import axios from "axios";
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+dayjs.locale("ko"); // global로 한국어 locale 사용
+
 export default {
 	data() {
+			return {
+			// 현재 시간을 나타내기 위한 Dayjs 플러그인 사용
+			currentTime: dayjs().format("YYYY. MM. DD. ddd"),
+			// 현재 시간에 따른 온도 데이터
+			currentTemp: "",
+			// 상세 날짜 데이터를 받아주는 데이터 할당
 
-		return {
-		// 임시 데이터
-		TemporaryData: [
-			{
-				title: "습도",
-				value: "88%",
-			},
-			{
-				title: "풍속",
-				value: "10m/s",
-			},
-			{
-				title: "풍향",
-				value: "WS",
-			}
-		]
-		}
-	}
-}
+			temps: [],
+			icons: [],
+			cityName: "",
+			// 임시 데이터
+			temporaryData: [
+				{
+					title: "습도",
+					value: "",
+				},
+				{
+					title: "풍속",
+					value: "",
+				},
+				{
+					title: "체감온도",
+					value: "",
+				},
+			],
+		};
+	},
+	created() {
+		// https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&exclude={part}&appid=${API_KEY}
+		// 초기 데이터를 선언을 위한 코드 작성
+		const API_KEY = "41411c6ac5537896e6ddb2756c6610c5";
+		let initialLat = 35.5383773;
+		let initialLon = 129.3113596;
+
+			// get() 메서드를 통해서 우리가 필요로하는 API 데이터를 호출한다.
+			axios
+			.get(`https://api.openweathermap.org/data/2.5/onecall?lat=${initialLat}&lon=${initialLon}&exclude={part}&appid=${API_KEY}&units=metric`) 
+			.then(response => {
+				console.log(response);
+				let initialCityName = response.data.timezone;
+				let initialCurrentWeatherData = response.data.current;
+				this.cityName = initialCityName.split("/")[1]; // ['asia', 'seoul']
+				this.currentTemp = initialCurrentWeatherData.temp; // 현재 시간에 따른 현재 온도
+
+				this.temporaryData[0].value = initialCurrentWeatherData.humidity + "%";	// 습도
+				this.temporaryData[1].value = initialCurrentWeatherData.wind.speed + "m/s"; // 풍속
+				this.temporaryData[2].value = Math.round(initialCurrentWeatherData.feels_like) + "도"; // 체감온도
+
+				// 시간대별 날씨 데이터를 제어
+				// this.arrayTemps = response.data.hourly;
+				// 24시간 이내의 데이터만 활용함.
+				for(let i = 0; i < 24; i++) {
+					this.arrayTemps[i] = response.data.hourly;
+				}
+				console.log(this.arrayTemps)
+			})
+			.catch(error => {
+				console.log(error)
+			});
+		},
+	};
 </script>
 
 <style lang="scss" scoped>
@@ -267,13 +313,21 @@ export default {
 			width: calc(100% - 70px);
 			height: 65%;
 			padding: 0 30px;
+			overflow: scroll;
+
 
 			.timelyWeather {
 				display: flex;
 				width: 126px;
+				min-width: 126px;
 				height: 70px;
 				background-color: #0988ff;
 				border-radius: 20px;
+				margin-left: 15px;
+
+				&:first-child {
+					margin-left: 0;
+				}
 
 				.icon {
 					@include center;
